@@ -11,6 +11,10 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/animations.css">
     <link rel="stylesheet" href="css/ui.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500&display=swap" rel="stylesheet">
 </head>
 <body class="h-screen w-full flex flex-col items-center justify-center bg-grid relative">
 
@@ -22,8 +26,35 @@
 <!-- Start Screen -->
 <div id="start-screen" class="text-center z-10 transition-opacity duration-300 w-full max-w-4xl px-4 flex flex-col items-center" role="main">
     <div class="mb-8">
-        <i class="fas fa-keyboard text-6xl text-cyan-400 mb-4 animate-bounce" aria-hidden="true"></i>
-        <h1 class="text-5xl font-bold text-white tracking-wider mb-2">NEON TYPE</h1>
+        <div class="neon-logo-container">
+            <svg class="neon-svg" width="800px" height="200px" viewBox="0 0 800 200" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <filter id="static_blur" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="1" />
+                    </filter>
+                    <filter id="neon_glow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="8" />
+                    </filter>
+                </defs>
+
+                <g class="neon-text-group">
+                    <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+                          class="neon-layer-glow" filter="url(#neon_glow)">
+                        NEON TYPE
+                    </text>
+
+                    <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+                          class="neon-layer-base">
+                        NEON TYPE
+                    </text>
+
+                    <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+                          class="neon-layer-core" filter="url(#static_blur)">
+                        NEON TYPE
+                    </text>
+                </g>
+            </svg>
+        </div>
         <p class="text-slate-400">日常単語タイピング</p>
     </div>
 

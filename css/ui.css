@@ -12,3 +12,51 @@
     border-color: #22d3ee;
     box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
 }
+
+/* --- NEON TYPE LOGO STYLES --- */
+
+.neon-logo-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.neon-svg text {
+    font-family: 'Oswald', sans-serif; /* Google Font適用 */
+    font-size: 130px; /* 文字サイズ調整 */
+    font-weight: 500;
+    letter-spacing: 8px; /* 文字間隔 */
+}
+
+/* 1. 光の層（一番下：黄色いボカシ） */
+.neon-layer-glow {
+    fill: none;
+    stroke: #F2D02B; /* HOT ONES風の黄色 */
+    stroke-width: 18px;
+    stroke-linejoin: round;
+    opacity: 0.8;
+}
+
+/* 2. ベースの層（中間：黄色い管） */
+.neon-layer-base {
+    fill: none;
+    stroke: #F2D02B;
+    stroke-width: 8px;
+    stroke-linejoin: round;
+}
+
+/* 3. 芯の層（一番上：白い芯） */
+.neon-layer-core {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2px;
+    stroke-linejoin: round;
+    opacity: 0.9;
+}
+
+/* アニメーション適用 */
+.neon-text-group {
+    animation: text-flicker 3s linear infinite;
+}
