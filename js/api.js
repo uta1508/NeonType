@@ -1,8 +1,11 @@
+// Supabase 設定
+// Anon Keyは公開前提の設計なので、ここに直接書いてOK
+const SUPABASE_URL = "https://tfjyyagzxtigopnelfdz.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmanl5YWd6eHRpZ29wbmVsZmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY1NTgyMjYsImV4cCI6MjA4MjEzNDIyNn0.yBHd07aouCRPu49epeQvUuCIQlSZYpAHUXGf2FhK23s";
+
 // Supabaseクライアントの初期化チェック
 function isSupabaseConfigured() {
-    return typeof SUPABASE_URL !== 'undefined' &&
-        typeof SUPABASE_ANON_KEY !== 'undefined' &&
-        SUPABASE_URL !== "YOUR_SUPABASE_URL" &&
+    return SUPABASE_URL !== "YOUR_SUPABASE_URL" &&
         SUPABASE_ANON_KEY !== "YOUR_SUPABASE_ANON_KEY" &&
         SUPABASE_URL &&
         SUPABASE_ANON_KEY;
