@@ -1,0 +1,127 @@
+/* シェイクアニメーション */
+.shake {
+    animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+/* カウントダウン用アニメーション */
+@keyframes count-pop {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+.count-anim {
+    animation: count-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* ボーナステキストアニメーション */
+@keyframes float-up {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-30px) scale(1.5); opacity: 0; }
+}
+.bonus-anim {
+    position: absolute;
+    animation: float-up 0.8s ease-out forwards;
+    pointer-events: none;
+    color: #fbbf24;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(251, 191, 36, 0.5);
+}
+
+/* ランキングリストのアニメーション */
+.rank-item {
+    animation: slide-in 0.3s ease-out forwards;
+    opacity: 0;
+    transform: translateX(-20px);
+}
+@keyframes slide-in {
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* モーダル画面のフェードインアニメーション */
+@keyframes modal-fade-in {
+    0% {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+    100% {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+    }
+}
+
+/* モーダル画面のフェードアウトアニメーション */
+@keyframes modal-fade-out {
+    0% {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+    }
+    100% {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+}
+
+/* モーダルコンテンツのスライドアップアニメーション */
+@keyframes modal-slide-up {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* モーダルコンテンツのスライドダウンアニメーション */
+@keyframes modal-slide-down {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+}
+
+/* ネオングロー効果 */
+@keyframes neon-glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(34, 211, 238, 0.3),
+                    0 0 10px rgba(34, 211, 238, 0.2),
+                    0 0 20px rgba(34, 211, 238, 0.1);
+    }
+    50% {
+        box-shadow: 0 0 10px rgba(34, 211, 238, 0.5),
+                    0 0 20px rgba(34, 211, 238, 0.3),
+                    0 0 40px rgba(34, 211, 238, 0.2);
+    }
+}
+
+.modal-fade-in {
+    animation: modal-fade-in 0.3s ease-out forwards;
+}
+
+.modal-fade-out {
+    animation: modal-fade-out 0.25s ease-in forwards;
+}
+
+.modal-content {
+    animation: modal-slide-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.modal-content-out {
+    animation: modal-slide-down 0.25s ease-in forwards;
+}
+
+.neon-border {
+    animation: neon-glow 2s ease-in-out infinite;
+}

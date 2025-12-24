@@ -1,0 +1,14 @@
+/* 選択パネルのスタイル */
+.option-card {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.option-card:hover {
+    background-color: rgba(34, 211, 238, 0.1);
+    border-color: #22d3ee;
+}
+.option-card.selected {
+    background-color: rgba(34, 211, 238, 0.2);
+    border-color: #22d3ee;
+    box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+}
