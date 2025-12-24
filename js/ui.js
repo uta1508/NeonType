@@ -180,39 +180,40 @@ async function updateRankingDisplay() {
             const el = document.createElement('div');
             el.className = 'rank-item grid grid-cols-12 gap-4 text-base text-slate-300 py-3 px-2 border-b border-slate-700/50 items-center hover:bg-slate-700/30 transition-colors rounded';
             let rankColor = 'text-slate-400';
-            let rankIcon = '';
+            let iconClass = null;
             if (index === 0) {
                 rankColor = 'text-yellow-400';
-                rankIcon = '<i class="fas fa-crown mr-1"></i>';
-            }
-            if (index === 1) {
+                iconClass = 'fas fa-crown mr-1';
+            } else if (index === 1) {
                 rankColor = 'text-slate-300';
-                rankIcon = '<i class="fas fa-medal mr-1"></i>';
-            }
-            if (index === 2) {
+                iconClass = 'fas fa-medal mr-1';
+            } else if (index === 2) {
                 rankColor = 'text-amber-600';
-                rankIcon = '<i class="fas fa-medal mr-1"></i>';
+                iconClass = 'fas fa-medal mr-1';
             }
-            
-            // XSS対策の強化
+
+            // XSS対策の強化 (textContent を全面的に使用)
             const safeName = sanitizeText(entry.userName || 'No Name');
             const safeScore = sanitizeText(String(entry.score || 0));
-            
-            // textContentを使用してXSSを完全に防止
+
             const rankDiv = document.createElement('div');
             rankDiv.className = `col-span-2 text-center font-bold ${rankColor} text-xl`;
-            rankDiv.innerHTML = rankIcon;
-            const rankText = document.createTextNode(String(index + 1));
-            rankDiv.appendChild(rankText);
-            
+
+            if (iconClass) {
+                const icon = document.createElement('i');
+                icon.className = iconClass;
+                rankDiv.appendChild(icon);
+            }
+            rankDiv.appendChild(document.createTextNode(String(index + 1)));
+
             const nameDiv = document.createElement('div');
             nameDiv.className = 'col-span-6 truncate font-medium';
             nameDiv.textContent = safeName;
-            
+
             const scoreDiv = document.createElement('div');
             scoreDiv.className = 'col-span-4 text-right font-mono text-cyan-400 font-bold text-lg';
             scoreDiv.textContent = safeScore;
-            
+
             el.appendChild(rankDiv);
             el.appendChild(nameDiv);
             el.appendChild(scoreDiv);
