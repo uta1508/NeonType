@@ -57,36 +57,46 @@ function cacheDOM() {
     domCache.countdownDisplay = document.getElementById('countdown-display');
 }
 
-// ハイスコアの読み込み（バージョン管理付き）
+// ハイスコアの読み込み（バージョン管理・KPM->KPS互換性対応付き）
 function loadHighScore() {
     const saved = localStorage.getItem('neonTypeHighScore');
     if (saved) {
         try {
             const data = JSON.parse(saved);
             if (data.version === DATA_VERSION) {
-                highScore = data.highScore || { score: 0, kpm: 0 };
+                let loadedScore = data.highScore || { score: 0, kps: 0 };
+                // KPMからKPSへの後方互換性対応
+                if (loadedScore.kpm !== undefined) {
+                    loadedScore.kps = parseFloat((loadedScore.kpm / 60).toFixed(2));
+                    delete loadedScore.kpm;
+                }
+                highScore = loadedScore;
             } else {
                 console.log('Data version mismatch, resetting high score');
+                highScore = { score: 0, kps: 0 };
             }
         } catch(e) {
             console.error("Save data corrupted:", e);
+            highScore = { score: 0, kps: 0 };
         }
+    } else {
+        highScore = { score: 0, kps: 0 };
     }
 }
 
 // ハイスコアの保存
-function saveHighScore(newScore, newKpm) {
+function saveHighScore(newScore, newKps) {
     if (currentSettings.mode === 'practice') return;
     let updated = false;
-    if (newScore > highScore.score) {
+    if (newScore > (highScore.score || 0)) {
         highScore.score = newScore;
         updated = true;
         document.getElementById('new-record-score').classList.remove('hidden');
     }
-    if (newKpm > highScore.kpm) {
-        highScore.kpm = newKpm;
+    if (newKps > (highScore.kps || 0)) {
+        highScore.kps = newKps;
         updated = true;
-        document.getElementById('new-record-kpm').classList.remove('hidden');
+        document.getElementById('new-record-kps').classList.remove('hidden');
     }
     if (updated) {
         localStorage.setItem('neonTypeHighScore', JSON.stringify({
@@ -99,8 +109,8 @@ function saveHighScore(newScore, newKpm) {
 
 // ハイスコア表示の更新
 function updateHighScoreDisplay() {
-    document.getElementById('best-score').textContent = highScore.score;
-    document.getElementById('best-kpm').textContent = highScore.kpm;
+    document.getElementById('best-score').textContent = highScore.score || 0;
+    document.getElementById('best-kps').textContent = highScore.kps || 0;
 }
 
 // 単語のフィルタリング（キャッシュ付き）
@@ -286,15 +296,15 @@ function endGame(title = 'FINISH', canSubmit = true) {
     }
     gameState = 'result';
     const durationSec = (Date.now() - startTime) / 1000;
-    const kpm = durationSec > 0 ? Math.round((correctKeystrokes / durationSec) * 60) : 0;
+    const kps = durationSec > 0 ? (correctKeystrokes / durationSec).toFixed(2) : 0;
     const accuracy = totalKeystrokes > 0 ? Math.round((correctKeystrokes / totalKeystrokes) * 100) : 0;
-    saveHighScore(score, kpm);
+    saveHighScore(score, parseFloat(kps));
     document.getElementById('result-title').textContent = title;
     document.getElementById('final-score').textContent = score;
     document.getElementById('final-combo').textContent = maxCombo;
     document.getElementById('final-keys').textContent = correctKeystrokes;
     document.getElementById('final-accuracy').textContent = accuracy + '%';
-    document.getElementById('final-kpm').textContent = kpm;
+    document.getElementById('final-kps').textContent = kps;
     if (currentSettings.mode !== 'practice' && canSubmit) {
         document.getElementById('ranking-entry').classList.remove('hidden');
     } else {
