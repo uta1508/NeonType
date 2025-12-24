@@ -125,3 +125,388 @@
 .neon-border {
     animation: neon-glow 2s ease-in-out infinite;
 }
+
+/* 称号アンロック演出 */
+@keyframes achievement-pop-in {
+    0% {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+        filter: blur(10px);
+    }
+    60% {
+        transform: scale(1.3) rotate(10deg);
+        filter: blur(0px);
+    }
+    80% {
+        transform: scale(0.9) rotate(-5deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+        filter: blur(0px);
+    }
+}
+
+/* 称号カードのパルス効果 */
+@keyframes card-pulse {
+    0%, 100% {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+    50% {
+        box-shadow: 0 20px 80px rgba(34, 211, 238, 0.6),
+                    0 0 100px rgba(34, 211, 238, 0.4);
+    }
+}
+
+.achievement-unlock-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: background 0.3s ease;
+    pointer-events: none;
+}
+
+.achievement-unlock-overlay.active {
+    background: rgba(0, 0, 0, 0.85);
+    pointer-events: auto;
+}
+
+.achievement-unlock-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    border: 3px solid;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    max-width: 400px;
+    transform: scale(0);
+    opacity: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.achievement-unlock-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: rotate(45deg);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.achievement-unlock-card.pop-in {
+    animation: achievement-pop-in 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+               card-pulse 2s ease-in-out infinite 0.8s;
+}
+
+.achievement-unlock-card.rarity-bronze { 
+    border-color: #cd7f32; 
+    box-shadow: 0 20px 60px rgba(205, 127, 50, 0.4);
+}
+.achievement-unlock-card.rarity-common { 
+    border-color: #10b981; 
+    box-shadow: 0 20px 60px rgba(16, 185, 129, 0.4);
+}
+.achievement-unlock-card.rarity-rare { 
+    border-color: #3b82f6; 
+    box-shadow: 0 20px 60px rgba(59, 130, 246, 0.5);
+}
+.achievement-unlock-card.rarity-epic { 
+    border-color: #a855f7; 
+    box-shadow: 0 20px 60px rgba(168, 85, 247, 0.6);
+}
+.achievement-unlock-card.rarity-legendary { 
+    border-color: #f59e0b; 
+    box-shadow: 0 20px 60px rgba(245, 158, 11, 0.7);
+}
+.achievement-unlock-card.rarity-mythic { 
+    border-color: #ffffff; 
+    box-shadow: 0 20px 80px rgba(255, 255, 255, 0.8);
+}
+
+.achievement-unlock-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+    animation: icon-float 3s ease-in-out infinite;
+}
+
+@keyframes icon-float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    25% { transform: translateY(-10px) rotate(-5deg); }
+    50% { transform: translateY(0px) rotate(0deg); }
+    75% { transform: translateY(-10px) rotate(5deg); }
+}
+
+.achievement-unlock-title {
+    font-size: 16px;
+    color: #94a3b8;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.achievement-unlock-name {
+    font-size: 32px;
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5),
+                 0 0 40px rgba(34, 211, 238, 0.3);
+    animation: text-glow 2s ease-in-out infinite;
+}
+
+@keyframes text-glow {
+    0%, 100% {
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.5),
+                     0 0 40px rgba(34, 211, 238, 0.3);
+    }
+    50% {
+        text-shadow: 0 0 30px rgba(255, 255, 255, 0.8),
+                     0 0 60px rgba(34, 211, 238, 0.6),
+                     0 0 80px rgba(34, 211, 238, 0.4);
+    }
+}
+
+.achievement-unlock-desc {
+    font-size: 14px;
+    color: #cbd5e1;
+}
+
+/* NEXTインジケーター */
+.achievement-next-indicator {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20px;
+    font-weight: bold;
+    color: #22d3ee;
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+    z-index: 101;
+}
+
+.achievement-next-indicator .blink {
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+}
+
+/* エフェクト */
+.achievement-effects {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 99;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    top: -20px;
+    animation: confetti-fall linear forwards;
+}
+
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(-20px) rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg) scale(0.5);
+        opacity: 0;
+    }
+}
+
+.mythic-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    animation: mythic-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes mythic-pulse {
+    0%, 100% { 
+        opacity: 0.3; 
+        transform: scale(1); 
+        filter: hue-rotate(0deg);
+    }
+    50% { 
+        opacity: 0.8; 
+        transform: scale(1.2); 
+        filter: hue-rotate(360deg);
+    }
+}
+
+/* 光の粒子エフェクト */
+.light-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    animation: particle-float linear forwards;
+    pointer-events: none;
+}
+
+@keyframes particle-float {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(calc(var(--end-x) - 50%), calc(var(--end-y) - 50%)) scale(0);
+    }
+}
+
+/* レインボーリングエフェクト */
+.rainbow-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100px;
+    height: 100px;
+    border: 3px solid;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    border-image: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3) 1;
+    animation: ring-expand 2s ease-out infinite;
+    opacity: 0;
+}
+
+@keyframes ring-expand {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(3);
+        opacity: 0;
+    }
+}
+
+/* レア度別グロー効果の強化 */
+.achievement-unlock-card.rarity-legendary::after,
+.achievement-unlock-card.rarity-mythic::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    background: linear-gradient(45deg, #f59e0b, #ef4444, #a855f7, #3b82f6, #f59e0b);
+    background-size: 400% 400%;
+    border-radius: 20px;
+    z-index: -1;
+    animation: gradient-rotate 3s ease infinite;
+    filter: blur(10px);
+}
+
+@keyframes gradient-rotate {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* プロフィール画面用スタイル */
+.achievement-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: #1e293b;
+    border-radius: 12px;
+    border: 2px solid #334155;
+    transition: all 0.3s ease;
+}
+
+.achievement-card.unlocked {
+    border-color: #22d3ee;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+.achievement-card.locked {
+    opacity: 0.5;
+    filter: grayscale(1);
+}
+
+.achievement-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.achievement-icon {
+    font-size: 40px;
+    min-width: 60px;
+    text-align: center;
+}
+
+.achievement-info {
+    flex: 1;
+}
+
+.achievement-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 4px;
+}
+
+.achievement-desc {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.fade-in-slow {
+    animation: fade-in-slow 0.5s ease-out forwards;
+}
+
+@keyframes fade-in-slow {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 称号バッジ */
+.achievement-badge {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    text-align: center;
+    line-height: 40px;
+    background: rgba(34, 211, 238, 0.1);
+    border: 2px solid #22d3ee;
+    border-radius: 50%;
+    cursor: help;
+    transition: transform 0.2s ease;
+}
+
+.achievement-badge:hover {
+    transform: scale(1.1);
+}

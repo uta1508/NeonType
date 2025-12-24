@@ -28,8 +28,8 @@ function validateScoreData(data) {
     }
 
     // KPMのチェック
-    if (typeof data.kpm !== 'number' || data.kpm < 0 || data.kpm > 3000) {
-        errors.push("KPMの値が不正です");
+    if (data.kpm > 1200) { // KPS 20相当 (プロゲーマーレベル以上)
+        errors.push("異常な入力速度が検出されました");
     }
 
     // モードと難易度のチェック（許可リスト）

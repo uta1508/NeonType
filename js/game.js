@@ -169,7 +169,7 @@ function prepareGame() {
     shuffleDeck();
 
     document.getElementById('new-record-score').classList.add('hidden');
-    document.getElementById('new-record-kpm').classList.add('hidden');
+    document.getElementById('new-record-kps').classList.add('hidden');
     document.getElementById('ranking-entry').classList.add('hidden');
     document.getElementById('btn-submit-score').disabled = false;
     document.getElementById('btn-submit-score').textContent = '送信';
@@ -298,18 +298,41 @@ function endGame(title = 'FINISH', canSubmit = true) {
     const durationSec = (Date.now() - startTime) / 1000;
     const kps = durationSec > 0 ? (correctKeystrokes / durationSec).toFixed(2) : 0;
     const accuracy = totalKeystrokes > 0 ? Math.round((correctKeystrokes / totalKeystrokes) * 100) : 0;
+    const misses = totalKeystrokes - correctKeystrokes;
+    
     saveHighScore(score, parseFloat(kps));
+    
+    // プレイ済みフラグを立てる
+    markAsPlayed();
+    
+    // 称号チェック
+    const gameStats = {
+        score: score,
+        kps: parseFloat(kps),
+        misses: misses,
+        maxCombo: maxCombo,
+        totalChars: correctKeystrokes
+    };
+    const newAchievements = checkNewAchievements(gameStats);
+    
     document.getElementById('result-title').textContent = title;
     document.getElementById('final-score').textContent = score;
     document.getElementById('final-combo').textContent = maxCombo;
     document.getElementById('final-keys').textContent = correctKeystrokes;
     document.getElementById('final-accuracy').textContent = accuracy + '%';
     document.getElementById('final-kps').textContent = kps;
+    
     if (currentSettings.mode !== 'practice' && canSubmit) {
         document.getElementById('ranking-entry').classList.remove('hidden');
+        // 保存されているユーザー名を自動入力
+        const savedName = getUsername();
+        if (savedName) {
+            document.getElementById('player-name-input').value = savedName;
+        }
     } else {
         document.getElementById('ranking-entry').classList.add('hidden');
     }
+    
     // ゲームUIを非表示
     const gameUI = document.getElementById('game-ui');
     gameUI.classList.add('hidden');
@@ -327,6 +350,13 @@ function endGame(title = 'FINISH', canSubmit = true) {
     const resultScreen = document.getElementById('result-screen');
     resultScreen.classList.remove('hidden');
     resultScreen.style.display = 'flex';
+    
+    // 称号演出の準備
+    if (newAchievements.length > 0) {
+        prepareAchievementUnlock(newAchievements);
+    } else {
+        showResultButtons();
+    }
 }
 
 // 次の単語

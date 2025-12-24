@@ -60,6 +60,13 @@ function resetData() {
 // 設定画面表示
 function showSettings() {
     document.getElementById('start-screen').classList.add('hidden');
+
+    // プロフィールボタンを非表示
+    const profileButton = document.getElementById('profile-button-top');
+    if (profileButton) {
+        profileButton.classList.add('hidden');
+    }
+
     const settingsScreen = document.getElementById('settings-screen');
     settingsScreen.classList.remove('hidden');
     settingsScreen.classList.add('modal-fade-in');
@@ -70,14 +77,14 @@ function showSettings() {
 function hideSettings() {
     const settingsScreen = document.getElementById('settings-screen');
     const modalContent = settingsScreen.querySelector('.modal-content');
-    
+
     // フェードアウトアニメーションを追加
     settingsScreen.classList.remove('modal-fade-in');
     settingsScreen.classList.add('modal-fade-out');
     if (modalContent) {
         modalContent.classList.add('modal-content-out');
     }
-    
+
     // アニメーション終了後に非表示
     setTimeout(() => {
         settingsScreen.classList.add('hidden');
@@ -87,6 +94,12 @@ function hideSettings() {
             modalContent.classList.remove('modal-content-out');
         }
         document.getElementById('start-screen').classList.remove('hidden');
+
+        // プロフィールボタンを再表示
+        const profileButton = document.getElementById('profile-button-top');
+        if (hasPlayedBefore() && profileButton) {
+            profileButton.classList.remove('hidden');
+        }
     }, 250);
 }
 

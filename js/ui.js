@@ -5,6 +5,12 @@ function showSetup() {
     document.getElementById('game-ui').classList.add('hidden');
     document.getElementById('result-screen').classList.add('hidden');
     
+    // プロフィールボタンを非表示
+    const profileButton = document.getElementById('profile-button-top');
+    if (profileButton) {
+        profileButton.classList.add('hidden');
+    }
+    
     const setupScreen = document.getElementById('setup-screen');
     setupScreen.classList.remove('hidden');
     setupScreen.classList.add('modal-fade-in');
@@ -15,30 +21,36 @@ function showSetup() {
 function hideSetup() {
     const setupScreen = document.getElementById('setup-screen');
     const modalContent = setupScreen.querySelector('.modal-content');
-    
-    // フェードアウトアニメーションを追加
+
+    // アニメーション用クラス付与
     setupScreen.classList.remove('modal-fade-in');
     setupScreen.classList.add('modal-fade-out');
     if (modalContent) {
         modalContent.classList.add('modal-content-out');
     }
-    
-    // アニメーション終了後に非表示
-    setTimeout(() => {
+
+    // ★修正ポイント: transitionend を使用
+    // アニメーションが終わったタイミングで1回だけ実行される関数を作成
+    function onAnimationEnd() {
         setupScreen.classList.add('hidden');
         setupScreen.classList.remove('modal-fade-out');
         setupScreen.style.display = 'none';
+
         if (modalContent) {
             modalContent.classList.remove('modal-content-out');
         }
-        
-        // 他の画面も確実に非表示にする
+
+        // 他の画面制御
         document.getElementById('game-ui').classList.add('hidden');
         document.getElementById('result-screen').classList.add('hidden');
-        
-        // スタート画面を表示
         document.getElementById('start-screen').classList.remove('hidden');
-    }, 250);
+
+        // イベントリスナーを削除（掃除）
+        setupScreen.removeEventListener('transitionend', onAnimationEnd);
+    }
+
+    // イベントリスナーを登録
+    setupScreen.addEventListener('transitionend', onAnimationEnd);
 }
 
 // モード選択
@@ -89,10 +101,20 @@ function showTitle() {
     rankingScreen.classList.add('hidden');
     rankingScreen.style.display = 'none';
     
+    const profileScreen = document.getElementById('profile-screen');
+    profileScreen.classList.add('hidden');
+    profileScreen.style.display = 'none';
+    
     // スタート画面を表示
     const startScreen = document.getElementById('start-screen');
     startScreen.classList.remove('hidden');
     startScreen.style.display = '';
+    
+    // プロフィールボタンを表示（プレイ済みの場合）
+    const profileButton = document.getElementById('profile-button-top');
+    if (hasPlayedBefore() && profileButton) {
+        profileButton.classList.remove('hidden');
+    }
     
     updateHighScoreDisplay();
 }
@@ -104,6 +126,13 @@ async function showRankingFromTitle() {
         rankingFilter.difficulty = currentSettings.difficulty;
     }
     document.getElementById('start-screen').classList.add('hidden');
+    
+    // プロフィールボタンを非表示
+    const profileButton = document.getElementById('profile-button-top');
+    if (profileButton) {
+        profileButton.classList.add('hidden');
+    }
+    
     const rankingScreen = document.getElementById('ranking-screen');
     rankingScreen.classList.remove('hidden');
     rankingScreen.classList.add('modal-fade-in');
@@ -133,6 +162,12 @@ function hideRanking() {
             modalContent.classList.remove('modal-content-out');
         }
         document.getElementById('start-screen').classList.remove('hidden');
+        
+        // プロフィールボタンを再表示
+        const profileButton = document.getElementById('profile-button-top');
+        if (hasPlayedBefore() && profileButton) {
+            profileButton.classList.remove('hidden');
+        }
     }, 250);
 }
 
@@ -244,6 +279,11 @@ async function submitScoreData() {
     const name = nameInput.value.trim() || 'No Name';
     btn.disabled = true;
     btn.textContent = '送信中...';
+    
+    // ユーザー名を保存
+    if (name && name !== 'No Name') {
+        saveUsername(name);
+    }
 
     if (isSupabaseConfigured()) {
         const durationSec = (Date.now() - startTime) / 1000;

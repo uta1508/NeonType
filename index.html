@@ -14,6 +14,11 @@
 </head>
 <body class="h-screen w-full flex flex-col items-center justify-center bg-grid relative">
 
+<!-- Profile Button (Left Top) -->
+<button id="profile-button-top" onclick="showProfile()" class="hidden fixed top-6 left-6 z-20 w-14 h-14 bg-slate-800/90 hover:bg-slate-700 border-2 border-cyan-500 rounded-full flex items-center justify-center transition-all hover:scale-110 shadow-lg hover:shadow-cyan-500/50" aria-label="プロフィール" title="プロフィール">
+    <i class="fas fa-user text-cyan-400 text-xl"></i>
+</button>
+
 <!-- Start Screen -->
 <div id="start-screen" class="text-center z-10 transition-opacity duration-300 w-full max-w-4xl px-4 flex flex-col items-center" role="main">
     <div class="mb-8">
@@ -50,12 +55,12 @@
             <i class="fas fa-play group-hover:translate-x-1 transition-transform" aria-hidden="true"></i>
         </button>
 
-        <div class="flex gap-4">
-            <button onclick="showSettings()" class="flex-1 px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-full transition-all border border-slate-600" aria-label="設定画面を開く">
-                <i class="fas fa-cog mr-2" aria-hidden="true"></i>設定
+        <div class="flex gap-3">
+            <button onclick="showSettings()" class="flex-1 px-4 py-3 bg-slate-700/80 hover:bg-slate-600 text-white font-bold rounded-lg transition-all border border-slate-600 hover:border-slate-500" aria-label="設定画面を開く">
+                <i class="fas fa-cog mr-2 text-lg" aria-hidden="true"></i>設定
             </button>
-            <button onclick="showRankingFromTitle()" class="flex-1 px-4 py-3 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded-full transition-all border border-purple-600" aria-label="ランキングを表示">
-                <i class="fas fa-trophy mr-2" aria-hidden="true"></i>順位
+            <button onclick="showRankingFromTitle()" class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-700 to-purple-600 hover:from-purple-600 hover:to-purple-500 text-white font-bold rounded-lg transition-all border border-purple-500 hover:shadow-lg hover:shadow-purple-500/50" aria-label="ランキングを表示">
+                <i class="fas fa-trophy mr-2" aria-hidden="true"></i>ランキング
             </button>
         </div>
     </div>
@@ -315,6 +320,9 @@
             </button>
         </div>
     </div>
+    <!-- 結果画面に獲得称号表示エリアを追加 -->
+    <div id="unlocked-achievements-display" class="hidden flex-wrap justify-center gap-3 mb-6"></div>
+    
     <div class="flex gap-4">
         <button onclick="prepareGame()" class="px-8 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold rounded-full transition-all shadow-lg hover:shadow-cyan-500/50" aria-label="もう一度遊ぶ">
             もう一度遊ぶ
@@ -325,11 +333,72 @@
     </div>
 </div>
 
+<!-- Profile Screen -->
+<div id="profile-screen" class="hidden z-30 absolute inset-0 bg-slate-900/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 bg-grid overflow-y-auto" role="dialog" aria-label="プロフィール画面">
+    <div class="modal-content w-full max-w-4xl my-8">
+        <h2 class="text-3xl font-bold text-white mb-8"><i class="fas fa-user-circle mr-2"></i>PROFILE</h2>
+        
+        <!-- ユーザー情報 -->
+        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 mb-6">
+            <div id="profile-username-display-section" class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-sm mb-1">USERNAME</p>
+                    <p id="profile-username-display" class="text-2xl font-bold text-cyan-400">No Name</p>
+                </div>
+                <button onclick="startEditUsername()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded transition-all">
+                    <i class="fas fa-edit mr-2"></i>編集
+                </button>
+            </div>
+            
+            <div id="profile-username-edit-section" class="hidden">
+                <p class="text-slate-400 text-sm mb-2">USERNAME</p>
+                <div class="flex gap-2">
+                    <input type="text" id="profile-username-input" maxlength="10" placeholder="名前を入力 (10文字以内)" 
+                           class="flex-1 bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+                    <button onclick="saveUsernameFromProfile()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded transition-all">
+                        保存
+                    </button>
+                    <button onclick="cancelEditUsername()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded transition-all">
+                        キャンセル
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 統計情報 -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                <p class="text-xs text-slate-400 uppercase mb-2">Total Plays</p>
+                <p id="profile-total-plays" class="text-3xl font-bold text-yellow-400 mono">0</p>
+            </div>
+            <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                <p class="text-xs text-slate-400 uppercase mb-2">Total Characters</p>
+                <p id="profile-total-chars" class="text-3xl font-bold text-cyan-400 mono">0</p>
+            </div>
+        </div>
+        
+        <!-- 称号一覧 -->
+        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 mb-6">
+            <h3 class="text-xl font-bold text-yellow-400 mb-4"><i class="fas fa-trophy mr-2"></i>称号コレクション</h3>
+            <div id="profile-achievements-list" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto custom-scrollbar pr-2">
+                <!-- 称号カードがここに追加されます -->
+            </div>
+        </div>
+        
+        <button onclick="hideProfile()" class="px-12 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-full transition-all">
+            戻る
+        </button>
+    </div>
+</div>
+
 <!-- JavaScript -->
 <script src="js/api.js"></script>
 <script src="js/sound.js"></script>
 <script src="js/romaji.js"></script>
 <script src="js/data.js"></script>
+<script src="js/achievements.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/achievement-unlock.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/game.js"></script>
@@ -337,6 +406,11 @@
 <script>
     // 初期化
     initGame();
+    
+    // プロフィールボタンの表示制御
+    if (hasPlayedBefore()) {
+        document.getElementById('profile-button-top').classList.remove('hidden');
+    }
 </script>
 </body>
 </html>
