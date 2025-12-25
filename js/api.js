@@ -23,24 +23,8 @@ function validateScoreData(data) {
     }
 
     // スコアのチェック
-    if (typeof data.score !== 'number' || data.score < 0 || data.score > 1000000) {
-        errors.push("スコアの値が不正です");
-    }
-
-    // KPMのチェック
-    if (data.kpm > 1200) { // KPS 20相当 (プロゲーマーレベル以上)
-        errors.push("異常な入力速度が検出されました");
-    }
-
-    // モードと難易度のチェック（許可リスト）
-    const validModes = ['normal', 'practice', 'survival']; // 必要に応じて追加
-    const validDiffs = ['easy', 'normal', 'hard', 'lunatic']; // 必要に応じて追加
-
-    if (!validModes.includes(data.mode)) {
-        errors.push(`無効なモードです: ${data.mode}`);
-    }
-    if (!validDiffs.includes(data.difficulty)) {
-        errors.push(`無効な難易度です: ${data.difficulty}`);
+    if (typeof data.score !== 'number' || data.score < 0) {
+        errors.push("スコアが無効です");
     }
 
     return errors;
@@ -49,27 +33,26 @@ function validateScoreData(data) {
 // スコア送信
 async function submitScore(userName, score, kpm, mode, diff) {
     if (!isSupabaseConfigured()) {
-        console.warn('Supabase is not configured. Score not submitted.');
+        console.warn('Supabase is not configured');
         return { success: false, error: 'Configuration missing' };
     }
 
-    const url = `${SUPABASE_URL}/rest/v1/rankings`;
-
-    // データベースのカラム名(スネークケース)に合わせてデータを構築
     const payload = {
-        user_name: userName, // DBカラム: user_name
-        score: score,        // DBカラム: score
-        kpm: kpm,            // DBカラム: kpm
-        mode: mode,          // DBカラム: mode
-        difficulty: diff     // DBカラム: difficulty
+        user_name: userName,
+        score: score,
+        kpm: kpm,
+        mode: mode,
+        difficulty: diff,
+        created_at: new Date().toISOString()
     };
 
-    // 送信前にバリデーションを実行
-    const validationErrors = validateScoreData(payload);
-    if (validationErrors.length > 0) {
-        console.error("Validation failed:", validationErrors);
-        return { success: false, error: validationErrors.join(', ') };
+    const errors = validateScoreData(payload);
+    if (errors.length > 0) {
+        console.error('Validation errors:', errors);
+        return { success: false, error: errors.join(', ') };
     }
+
+    const url = `${SUPABASE_URL}/rest/v1/rankings`;
 
     try {
         const response = await fetch(url, {
@@ -78,30 +61,19 @@ async function submitScore(userName, score, kpm, mode, diff) {
                 'Content-Type': 'application/json',
                 'apikey': SUPABASE_ANON_KEY,
                 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                'Prefer': 'return=minimal' // レスポンスを最小限にする設定
+                'Prefer': 'return=minimal'
             },
             body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            const errorMsg = errorData.message || errorData.hint || 'Unknown error';
-            console.error(`Failed to submit score: HTTP ${response.status}`, errorData);
-
-            // 具体的なエラーコードに応じたメッセージ
-            if (errorData.code === 'PGRST204') {
-                throw new Error(`DBカラムが見つかりません: ${errorMsg}`);
-            }
-            if (errorData.code === '23514') { // Check Constraint Violation
-                throw new Error(`データの値が制限範囲外です (不正なスコア等)`);
-            }
-            throw new Error(`HTTP ${response.status}: ${errorMsg}`);
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
 
-        console.log('Score submitted successfully');
         return { success: true };
     } catch (e) {
-        console.error("Score submit error:", e);
+        console.error('Score submit error:', e);
         return { success: false, error: e.message };
     }
 }
@@ -114,7 +86,6 @@ async function fetchRankingData(mode, diff) {
     }
 
     // クエリパラメータの構築
-    // mode と difficulty でフィルタリングし、score の降順でソート、上位10件を取得
     const params = new URLSearchParams({
         mode: `eq.${mode}`,
         difficulty: `eq.${diff}`,
@@ -141,18 +112,52 @@ async function fetchRankingData(mode, diff) {
 
         const data = await response.json();
 
-        // データベースのカラム名(user_nameなど)をアプリ内で使いやすい形式(userNameなど)に変換して返す
         return data.map(entry => ({
             userName: entry.user_name || 'No Name',
             score: entry.score || 0,
             kpm: entry.kpm || 0,
             mode: entry.mode,
             difficulty: entry.difficulty,
-            timestamp: entry.created_at ? new Date(entry.created_at).toLocaleString() : ''
+            timestamp: entry.created_at
+        }));
+    } catch (e) {
+        console.error('Fetch ranking error:', e);
+        return [];
+    }
+}
+
+// 単語データ取得（新規追加）
+async function fetchWordsFromSupabase() {
+    if (!isSupabaseConfigured()) return null;
+
+    const url = `${SUPABASE_URL}/rest/v1/words?select=*`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            }
+        });
+
+        if (!response.ok) {
+            console.warn('Failed to fetch words from Supabase');
+            return null;
+        }
+
+        const data = await response.json();
+
+        // アプリケーションの形式に変換 (DBのカラム名 -> アプリのプロパティ名)
+        return data.map(item => ({
+            jp: item.jp,
+            kana: item.kana,
+            isEnglish: item.is_english
         }));
 
     } catch (e) {
-        console.error("Fetch ranking error:", e);
-        return [];
+        console.error('Error fetching words:', e);
+        return null;
     }
 }
