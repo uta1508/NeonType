@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Type - タイピングゲーム</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/ui.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500&display=swap" rel="stylesheet">
+</head>
+<body class="h-screen w-full flex flex-col items-center justify-center bg-grid relative">
+
+<!-- Profile Button (Left Top) -->
+<button id="profile-button-top" onclick="showProfile()" class="hidden fixed top-6 left-6 z-20 w-14 h-14 bg-slate-800/90 hover:bg-slate-700 border-2 border-cyan-500 rounded-full flex items-center justify-center transition-all hover:scale-110 shadow-lg hover:shadow-cyan-500/50" aria-label="プロフィール" title="プロフィール">
+    <i class="fas fa-user text-cyan-400 text-xl"></i>
+</button>
+
+<!-- Start Screen -->
+<div id="start-screen" class="text-center z-10 transition-opacity duration-300 w-full max-w-4xl px-4 flex flex-col items-center" role="main">
+    <div class="mb-8">
+        <div class="neon-logo-container">
+            <svg class="neon-svg" width="800px" height="200px" viewBox="0 0 800 200" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <filter id="static_blur" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="1" />
+                    </filter>
+                    <filter id="neon_glow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="8" />
+                    </filter>
+                </defs>
+
+                <g class="neon-text-group">
+                    <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+                          class="neon-layer-glow" filter="url(#neon_glow)">
+                        NEON TYPE
+                    </text>
+
+                    <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+                          class="neon-layer-base">
+                        NEON TYPE
+                    </text>
+
+                    <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+                          class="neon-layer-core" filter="url(#static_blur)">
+                        NEON TYPE
+                    </text>
+                </g>
+            </svg>
+        </div>
+        <p class="text-slate-400">日常単語タイピング</p>
+    </div>
+
+    <!-- High Score Display -->
+    <div class="flex justify-center gap-8 mb-8" role="region" aria-label="ハイスコア表示">
+        <div class="bg-slate-800/80 p-4 rounded-lg border border-slate-700 w-40">
+            <p class="text-xs text-slate-400 uppercase">BEST SCORE</p>
+            <p id="best-score" class="text-2xl font-bold text-yellow-400 mono" aria-label="最高得点">0</p>
+        </div>
+        <div class="bg-slate-800/80 p-4 rounded-lg border border-slate-700 w-40">
+            <p class="text-xs text-slate-400 uppercase">BEST KPS</p>
+            <p id="best-kps" class="text-2xl font-bold text-cyan-400 mono" aria-label="最高KPS">0</p>
+        </div>
+    </div>
+
+    <div class="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 max-w-md mx-auto mb-8 w-full" role="region" aria-label="ゲームのヒント">
+        <h2 class="text-xl font-bold text-cyan-300 mb-2"><i class="fas fa-info-circle mr-2" aria-hidden="true"></i>Hint</h2>
+        <ul class="text-left text-sm text-slate-300 space-y-2 list-disc pl-5">
+            <li><span class="text-yellow-400 font-bold">重要:</span> 日本語入力(IME)を<span class="text-red-400 font-bold">OFF</span>にしてください。</li>
+            <li><span class="text-green-400 font-bold">Tips:</span> 「ん」は単語の途中なら <span class="mono bg-slate-700 px-1 rounded">n</span>、最後なら <span class="mono bg-slate-700 px-1 rounded">nn</span>。</li>
+            <li><span class="text-purple-400 font-bold">コンボ:</span> 30/60/100/150キーで +1/1/2/3秒 のボーナス！</li>
+            <li><span class="text-green-400 font-bold">スコア:</span> 1キー10点 + コンボボーナス（10コンボ毎に+5点）</li>
+        </ul>
+    </div>
+
+    <div class="flex flex-col gap-4 w-full max-w-xs">
+        <button onclick="showSetup()" class="group relative px-8 py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold text-xl rounded-full transition-all duration-200 shadow-[0_0_20px_rgba(34,211,238,0.5)] hover:shadow-[0_0_30px_rgba(34,211,238,0.8)] transform hover:scale-105 active:scale-95" aria-label="ゲームを開始">
+            <span class="mr-2">PLAY</span>
+            <i class="fas fa-play group-hover:translate-x-1 transition-transform" aria-hidden="true"></i>
+        </button>
+
+        <div class="flex gap-3">
+            <button onclick="showSettings()" class="flex-1 px-4 py-3 bg-slate-700/80 hover:bg-slate-600 text-white font-bold rounded-lg transition-all border border-slate-600 hover:border-slate-500" aria-label="設定画面を開く">
+                <i class="fas fa-cog mr-2 text-lg" aria-hidden="true"></i>設定
+            </button>
+            <button onclick="showRankingFromTitle()" class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-700 to-purple-600 hover:from-purple-600 hover:to-purple-500 text-white font-bold rounded-lg transition-all border border-purple-500 hover:shadow-lg hover:shadow-purple-500/50" aria-label="ランキングを表示">
+                <i class="fas fa-trophy mr-2" aria-hidden="true"></i>ランキング
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Ranking Screen -->
+<div id="ranking-screen" class="hidden z-40 absolute inset-0 bg-slate-900/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 bg-grid" role="dialog" aria-label="ランキング画面">
+    <div class="modal-content w-full max-w-3xl">
+        <h2 class="text-3xl font-bold text-yellow-400 mb-4"><i class="fas fa-trophy mr-2" aria-hidden="true"></i>LEADERBOARD</h2>
+
+    <div class="w-full bg-slate-800 rounded-t-xl border border-b-0 border-slate-700 p-3 flex flex-col gap-2" role="tablist" aria-label="ランキングフィルター">
+        <div class="flex rounded-lg bg-slate-900/50 p-1">
+            <button onclick="changeRankingTab('mode', 'normal')" id="rank-tab-mode-normal" class="flex-1 py-1 text-xs font-bold rounded text-white bg-slate-700" role="tab" aria-selected="true">普通</button>
+            <button onclick="changeRankingTab('mode', 'sudden_death')" id="rank-tab-mode-sudden_death" class="flex-1 py-1 text-xs font-bold rounded text-slate-400 hover:bg-slate-800" role="tab" aria-selected="false">一発勝負</button>
+        </div>
+        <div class="flex rounded-lg bg-slate-900/50 p-1">
+            <button onclick="changeRankingTab('diff', 'easy')" id="rank-tab-diff-easy" class="flex-1 py-1 text-xs font-bold rounded text-slate-400 hover:bg-slate-800" role="tab" aria-selected="false">簡単</button>
+            <button onclick="changeRankingTab('diff', 'normal')" id="rank-tab-diff-normal" class="flex-1 py-1 text-xs font-bold rounded text-white bg-slate-700" role="tab" aria-selected="true">普通</button>
+            <button onclick="changeRankingTab('diff', 'hard')" id="rank-tab-diff-hard" class="flex-1 py-1 text-xs font-bold rounded text-slate-400 hover:bg-slate-800" role="tab" aria-selected="false">難しい</button>
+        </div>
+    </div>
+
+    <div class="bg-slate-800 p-6 rounded-b-xl border border-slate-700 w-full" style="height: 500px;" role="region" aria-label="ランキングコンテンツ">
+        <div class="flex flex-col h-full">
+            <div class="grid grid-cols-12 gap-4 text-sm text-slate-500 font-bold border-b border-slate-700 pb-3 mb-3">
+                <div class="col-span-2 text-center">RANK</div>
+                <div class="col-span-6">NAME</div>
+                <div class="col-span-4 text-right">SCORE</div>
+            </div>
+            <div id="ranking-list" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar" role="list" aria-live="polite" aria-label="ランキングリスト">
+                <div class="text-center text-slate-500 py-10">読み込み中...</div>
+            </div>
+        </div>
+    </div>
+
+        <button onclick="hideRanking()" class="mt-8 px-12 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-full transition-all" aria-label="ランキングを閉じる">
+            閉じる
+        </button>
+    </div>
+</div>
+
+<!-- Settings Screen -->
+<div id="settings-screen" class="hidden z-30 absolute inset-0 bg-slate-900/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 bg-grid" role="dialog" aria-label="設定画面">
+    <div class="modal-content">
+        <h2 class="text-3xl font-bold text-white mb-8">SETTINGS</h2>
+        <div class="bg-slate-800 p-8 rounded-xl border border-slate-700 w-full max-w-md space-y-6 neon-border">
+        <div class="flex justify-between items-center">
+            <div>
+                <p class="text-white font-bold text-lg">効果音 (SE)</p>
+                <p class="text-slate-400 text-xs">タイプ音やミス音を鳴らします</p>
+            </div>
+            <button id="btn-sound" onclick="toggleGlobalSetting('sound')" class="w-16 h-8 rounded-full bg-slate-600 relative transition-colors duration-300" role="switch" aria-checked="true" aria-label="効果音のオンオフ">
+                <div class="w-6 h-6 bg-white rounded-full absolute top-1 left-1 transition-transform duration-300 transform"></div>
+            </button>
+        </div>
+        <div class="flex justify-between items-center">
+            <div>
+                <p class="text-white font-bold text-lg">ふりがな表示</p>
+                <p class="text-slate-400 text-xs">単語の上に読み仮名を表示します</p>
+            </div>
+            <button id="btn-furigana" onclick="toggleGlobalSetting('furigana')" class="w-16 h-8 rounded-full bg-slate-600 relative transition-colors duration-300" role="switch" aria-checked="true" aria-label="ふりがな表示のオンオフ">
+                <div class="w-6 h-6 bg-white rounded-full absolute top-1 left-1 transition-transform duration-300 transform"></div>
+            </button>
+        </div>
+        <div class="flex justify-between items-center">
+            <div>
+                <p class="text-white font-bold text-lg">ローマ字大文字</p>
+                <p class="text-slate-400 text-xs">入力ガイドを大文字(ABC)にします</p>
+            </div>
+            <button id="btn-uppercase" onclick="toggleGlobalSetting('uppercase')" class="w-16 h-8 rounded-full bg-slate-600 relative transition-colors duration-300" role="switch" aria-checked="false" aria-label="ローマ字大文字表示のオンオフ">
+                <div class="w-6 h-6 bg-white rounded-full absolute top-1 left-1 transition-transform duration-300 transform"></div>
+            </button>
+        </div>
+        <hr class="border-slate-700">
+        <div class="flex justify-between items-center">
+            <div>
+                <p class="text-white font-bold text-lg">データリセット</p>
+                <p class="text-slate-400 text-xs">ハイスコアなどを初期化します</p>
+            </div>
+            <button onclick="resetData()" class="px-4 py-2 bg-red-900/50 hover:bg-red-800 text-red-200 text-xs font-bold rounded transition-all border border-red-800" aria-label="データをリセット">
+                リセット
+            </button>
+        </div>
+        </div>
+        <button onclick="hideSettings()" class="mt-8 px-12 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-full transition-all" aria-label="設定を閉じる">
+            戻る
+        </button>
+    </div>
+</div>
+
+<!-- Setup Screen -->
+<div id="setup-screen" class="hidden z-20 absolute inset-0 bg-slate-900/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 bg-grid" role="dialog" aria-label="ゲーム設定">
+    <div class="modal-content">
+        <h2 class="text-3xl font-bold text-white mb-8">GAME SETUP</h2>
+        <div class="w-full max-w-4xl grid md:grid-cols-2 gap-8 mb-8">
+        <div class="space-y-4" role="group" aria-label="モード選択">
+            <h3 class="text-cyan-400 font-bold text-lg mb-2 border-b border-slate-700 pb-2">モード選択</h3>
+            <div onclick="selectMode('practice')" id="mode-practice" class="option-card bg-slate-800 p-4 rounded-lg border border-slate-700 flex items-center gap-4" role="radio" aria-checked="false" tabindex="0">
+                <div class="bg-green-500/20 p-3 rounded-full text-green-400"><i class="fas fa-seedling text-xl" aria-hidden="true"></i></div>
+                <div class="text-left">
+                    <p class="font-bold text-white">練習</p>
+                    <p class="text-xs text-slate-400">時間制限なし・ランキング対象外</p>
+                </div>
+            </div>
+            <div onclick="selectMode('normal')" id="mode-normal" class="option-card selected bg-slate-800 p-4 rounded-lg border border-slate-700 flex items-center gap-4" role="radio" aria-checked="true" tabindex="0">
+                <div class="bg-cyan-500/20 p-3 rounded-full text-cyan-400"><i class="fas fa-stopwatch text-xl" aria-hidden="true"></i></div>
+                <div class="text-left">
+                    <p class="font-bold text-white">普通</p>
+                    <p class="text-xs text-slate-400">制限時間あり・スコアアタック</p>
+                </div>
+            </div>
+            <div onclick="selectMode('sudden_death')" id="mode-sudden_death" class="option-card bg-slate-800 p-4 rounded-lg border border-slate-700 flex items-center gap-4" role="radio" aria-checked="false" tabindex="0">
+                <div class="bg-red-500/20 p-3 rounded-full text-red-400"><i class="fas fa-skull text-xl" aria-hidden="true"></i></div>
+                <div class="text-left">
+                    <p class="font-bold text-white">一発勝負</p>
+                    <p class="text-xs text-slate-400">1ミスで即終了・制限時間あり</p>
+                </div>
+            </div>
+        </div>
+        <div class="space-y-4" role="group" aria-label="難易度選択">
+            <h3 class="text-yellow-400 font-bold text-lg mb-2 border-b border-slate-700 pb-2">難易度選択</h3>
+            <div onclick="selectDifficulty('easy')" id="diff-easy" class="option-card bg-slate-800 p-4 rounded-lg border border-slate-700 flex items-center gap-4" role="radio" aria-checked="false" tabindex="0">
+                <div class="text-2xl font-bold text-slate-500 w-8" aria-hidden="true">E</div>
+                <div class="text-left">
+                    <p class="font-bold text-white">簡単</p>
+                    <p class="text-xs text-slate-400">2~7文字 / 60秒</p>
+                </div>
+            </div>
+            <div onclick="selectDifficulty('normal')" id="diff-normal" class="option-card selected bg-slate-800 p-4 rounded-lg border border-slate-700 flex items-center gap-4" role="radio" aria-checked="true" tabindex="0">
+                <div class="text-2xl font-bold text-slate-500 w-8" aria-hidden="true">N</div>
+                <div class="text-left">
+                    <p class="font-bold text-white">普通</p>
+                    <p class="text-xs text-slate-400">5~10文字 / 90秒</p>
+                </div>
+            </div>
+            <div onclick="selectDifficulty('hard')" id="diff-hard" class="option-card bg-slate-800 p-4 rounded-lg border border-slate-700 flex items-center gap-4" role="radio" aria-checked="false" tabindex="0">
+                <div class="text-2xl font-bold text-slate-500 w-8" aria-hidden="true">H</div>
+                <div class="text-left">
+                    <p class="font-bold text-white">難しい</p>
+                    <p class="text-xs text-slate-400">9~14文字 / 120秒</p>
+                </div>
+            </div>
+        </div>
+        </div>
+        <div class="flex gap-4">
+            <button onclick="hideSetup()" class="px-8 py-3 text-slate-400 hover:text-white font-bold transition-all" aria-label="キャンセル">
+                キャンセル
+            </button>
+            <button onclick="prepareGame()" class="px-12 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold text-xl rounded-full transition-all shadow-lg hover:shadow-cyan-500/50" aria-label="ゲーム開始">
+                START!
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Game UI -->
+<div id="game-ui" class="hidden w-full max-w-3xl px-4 z-10 flex-col items-center relative" role="main" aria-label="ゲーム画面">
+    <div id="ready-overlay" class="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm rounded-xl" role="dialog" aria-label="ゲーム開始待機">
+        <div id="ready-message" class="text-center">
+            <div class="text-2xl text-cyan-300 font-bold mb-4 animate-pulse">スペース または Enter でスタート</div>
+            <div class="text-slate-400 text-sm">IMEをOFFにしてください</div>
+        </div>
+        <div id="countdown-display" class="hidden text-9xl font-bold text-yellow-400 mono count-anim" aria-live="assertive">3</div>
+    </div>
+    <div class="w-full mb-8 filter blur-sm transition-all duration-300" id="game-hud">
+        <div class="w-full max-w-xl mx-auto mb-4">
+            <div class="flex justify-between text-[10px] text-purple-300 mb-1 px-1">
+                <span>COMBO METER</span>
+                <span id="combo-bonus-next">NEXT: +1s</span>
+            </div>
+            <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700 relative" role="progressbar" aria-label="コンボゲージ" aria-valuemin="0" aria-valuemax="150" aria-valuenow="0">
+                <div class="absolute left-[20%] top-0 bottom-0 w-px bg-slate-600 z-10"></div>
+                <div class="absolute left-[40%] top-0 bottom-0 w-px bg-slate-600 z-10"></div>
+                <div class="absolute left-[66.67%] top-0 bottom-0 w-px bg-slate-600 z-10"></div>
+                <div id="combo-gauge-bar" class="h-full bg-purple-500 transition-all duration-200 ease-out" style="width: 0%"></div>
+            </div>
+        </div>
+        <div class="flex justify-center gap-4 mb-4 text-xs font-bold tracking-widest text-slate-500 uppercase">
+            <span id="current-mode-display" class="bg-slate-800 px-3 py-1 rounded border border-slate-700">MODE: NORMAL</span>
+            <span id="current-diff-display" class="bg-slate-800 px-3 py-1 rounded border border-slate-700">DIFF: NORMAL</span>
+        </div>
+        <div class="flex justify-between items-end border-b border-slate-700 pb-4">
+            <div class="text-center w-24">
+                <p class="text-xs text-slate-400 uppercase tracking-widest">Score</p>
+                <p id="score-display" class="text-3xl font-bold text-white mono" aria-live="polite">0</p>
+            </div>
+            <div class="flex-1 mx-8 relative">
+                <div class="flex justify-between text-xs text-slate-400 mb-1">
+                    <span>TIME</span>
+                    <span id="time-display" aria-live="polite">60s</span>
+                </div>
+                <div class="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div id="time-bar" class="h-full bg-cyan-400 transition-all duration-1000 ease-linear" style="width: 100%" role="progressbar" aria-label="残り時間"></div>
+                </div>
+                <div id="bonus-container" class="absolute top-0 right-0 w-full h-full pointer-events-none" aria-live="polite" aria-atomic="true"></div>
+            </div>
+            <div class="text-center w-24">
+                <p class="text-xs text-slate-400 uppercase tracking-widest">Combo</p>
+                <p id="combo-display" class="text-3xl font-bold text-yellow-400 mono" aria-live="polite">0</p>
+            </div>
+        </div>
+    </div>
+    <div class="w-full text-center relative min-h-[200px] flex flex-col justify-center filter blur-sm transition-all duration-300" id="game-area">
+        <div id="word-reading" class="text-xl text-cyan-200 font-bold h-8 mb-1 transition-opacity duration-300 opacity-0" aria-label="ふりがな"></div>
+        <div id="word-jp" class="text-4xl md:text-5xl font-bold text-white mb-4 transition-all duration-150" aria-live="polite" aria-atomic="true">
+            待機中...
+        </div>
+        <div class="text-3xl md:text-4xl font-bold mono tracking-wider bg-slate-800/50 p-6 rounded-xl backdrop-blur-sm border border-slate-700/50 shadow-inner break-all" role="application" aria-label="入力エリア" aria-live="polite">
+            <span id="typed-text" class="text-cyan-400 border-r-2 border-cyan-400 animate-pulse"></span><span id="untyped-text" class="text-slate-600"></span>
+        </div>
+        <div id="feedback-msg" class="absolute -bottom-12 left-0 right-0 text-center h-8 font-bold text-lg opacity-0 transition-opacity duration-200" aria-live="polite">
+            Perfect!
+        </div>
+    </div>
+</div>
+
+<!-- Result Screen -->
+<div id="result-screen" class="hidden text-center z-20 absolute inset-0 bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center" role="dialog" aria-label="結果画面">
+    <h2 id="result-title" class="text-4xl font-bold text-white mb-2">TIME UP!</h2>
+    <p class="text-slate-400 mb-8">結果発表</p>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-2xl mb-8">
+        <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+            <p class="text-xs text-slate-400">FINAL SCORE</p>
+            <div class="flex items-baseline justify-center gap-2">
+                <p id="final-score" class="text-3xl font-bold text-cyan-400 mono">0</p>
+                <span id="new-record-score" class="hidden text-xs text-yellow-400 font-bold animate-bounce">NEW!</span>
+            </div>
+        </div>
+        <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+            <p class="text-xs text-slate-400">KPS (Keys/Sec)</p>
+            <div class="flex items-baseline justify-center gap-2">
+                <p id="final-kps" class="text-3xl font-bold text-purple-400 mono">0</p>
+                <span id="new-record-kps" class="hidden text-xs text-yellow-400 font-bold animate-bounce">NEW!</span>
+            </div>
+        </div>
+        <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+            <p class="text-xs text-slate-400">KEYS TYPED</p>
+            <p id="final-keys" class="text-3xl font-bold text-white mono">0</p>
+        </div>
+        <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+            <p class="text-xs text-slate-400">MAX COMBO</p>
+            <p id="final-combo" class="text-3xl font-bold text-yellow-400 mono">0</p>
+        </div>
+        <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 md:col-span-2">
+            <p class="text-xs text-slate-400">ACCURACY</p>
+            <p id="final-accuracy" class="text-3xl font-bold text-green-400 mono">100%</p>
+        </div>
+    </div>
+    <div id="ranking-entry" class="w-full max-w-sm bg-slate-800 p-4 rounded-lg border border-purple-500 mb-8 hidden">
+        <p class="text-purple-300 font-bold mb-2 text-sm"><i class="fas fa-crown mr-1" aria-hidden="true"></i>オンラインランキングに登録</p>
+        <div class="flex gap-2">
+            <input type="text" id="player-name-input" maxlength="10" placeholder="名前を入力 (10文字以内)"
+                   class="flex-1 bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-purple-500" aria-label="プレイヤー名">
+            <button onclick="submitScoreData()" id="btn-submit-score"
+                    class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 rounded transition-colors disabled:opacity-50" aria-label="スコアを送信">
+                送信
+            </button>
+        </div>
+    </div>
+    <!-- 結果画面に獲得称号表示エリアを追加 -->
+    <div id="unlocked-achievements-display" class="hidden flex-wrap justify-center gap-3 mb-6"></div>
+    
+    <div class="flex gap-4">
+        <button onclick="prepareGame()" class="px-8 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold rounded-full transition-all shadow-lg hover:shadow-cyan-500/50" aria-label="もう一度遊ぶ">
+            もう一度遊ぶ
+        </button>
+        <button onclick="showTitle()" class="px-8 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-full transition-all" aria-label="タイトル画面へ戻る">
+            タイトルへ
+        </button>
+    </div>
+</div>
+
+<!-- Profile Screen -->
+<div id="profile-screen" class="hidden z-30 absolute inset-0 bg-slate-900/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 bg-grid overflow-y-auto" role="dialog" aria-label="プロフィール画面">
+    <div class="modal-content w-full max-w-4xl my-8">
+        <h2 class="text-3xl font-bold text-white mb-8"><i class="fas fa-user-circle mr-2"></i>PROFILE</h2>
+        
+        <!-- ユーザー情報 -->
+        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 mb-6">
+            <div id="profile-username-display-section" class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-sm mb-1">USERNAME</p>
+                    <p id="profile-username-display" class="text-2xl font-bold text-cyan-400">No Name</p>
+                </div>
+                <button onclick="startEditUsername()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded transition-all">
+                    <i class="fas fa-edit mr-2"></i>編集
+                </button>
+            </div>
+            
+            <div id="profile-username-edit-section" class="hidden">
+                <p class="text-slate-400 text-sm mb-2">USERNAME</p>
+                <div class="flex gap-2">
+                    <input type="text" id="profile-username-input" maxlength="10" placeholder="名前を入力 (10文字以内)" 
+                           class="flex-1 bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+                    <button onclick="saveUsernameFromProfile()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded transition-all">
+                        保存
+                    </button>
+                    <button onclick="cancelEditUsername()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded transition-all">
+                        キャンセル
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 統計情報 -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                <p class="text-xs text-slate-400 uppercase mb-2">Total Plays</p>
+                <p id="profile-total-plays" class="text-3xl font-bold text-yellow-400 mono">0</p>
+            </div>
+            <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                <p class="text-xs text-slate-400 uppercase mb-2">Total Characters</p>
+                <p id="profile-total-chars" class="text-3xl font-bold text-cyan-400 mono">0</p>
+            </div>
+        </div>
+        
+        <!-- 称号一覧 -->
+        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 mb-6">
+            <h3 class="text-xl font-bold text-yellow-400 mb-4"><i class="fas fa-trophy mr-2"></i>称号コレクション</h3>
+            <div id="profile-achievements-list" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto custom-scrollbar pr-2">
+                <!-- 称号カードがここに追加されます -->
+            </div>
+        </div>
+        
+        <button onclick="hideProfile()" class="px-12 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-full transition-all">
+            戻る
+        </button>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script src="js/api.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/romaji.js"></script>
+<script src="js/data.js"></script>
+<script src="js/achievements.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/achievement-unlock.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+<script src="js/input.js"></script>
+<script>
+    // 初期化
+    initGame();
+    
+    // プロフィールボタンの表示制御
+    if (hasPlayedBefore()) {
+        document.getElementById('profile-button-top').classList.remove('hidden');
+    }
+</script>
+</body>
+</html>

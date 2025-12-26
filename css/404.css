@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;800&family=Sora:wght@400;700&display=swap');
+
+:root {
+  --primary: #0d6efd;
+  --dark: #21252f;
+  --body: #888;
+}
+
+body {
+  font-family: "Sora", sans-serif;
+  line-height: 1.7;
+  color: var(--body);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.display-4 {
+  color: var(--dark);
+  font-weight: 700;
+}
+
+a {
+  color: var(--dark);
+  text-decoration: none;
+}
+
+.navbar .nav-link {
+  color: #fff !important;
+  font-size: 14px;
+  font-weight: 700;
+  padding-top: 16px;
+}
+
+.btn {
+  padding: 14px 18px;
+  border-width: 2px;
+}
+
+.navbar-toggler .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,255,255,1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+}
+
+body {
+  background: linear-gradient(45deg, #8500ff, #5acaff);
+  height: 100vh;
+}
+
+#main {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  right: 10%;
+  bottom: 10%;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: url('../img/p404.png'), #151729;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, .5);
+}
+
+#main .content {
+  max-width: 600px;
+  text-align: center;
+}
+#main .content h2 {
+  font-family: 'Poppins';
+  font-size: 18vw;
+  color: #fff;
+  line-height: 1em;
+}
+#main .content h4 {
+  font-family: 'Poppins';
+  position: relative;
+  font-size: 1.4em;
+  margin-bottom: 20px;
+  color: #111;
+  background: #fff;
+  font-weight: 300;padding: 10px 20px;
+  display: inline-block;
+}
+#main .content p {
+  font-size: 1.2em;
+}
