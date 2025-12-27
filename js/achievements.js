@@ -170,3 +170,12 @@ function getAchievementProgress(achievementId) {
         achievement: achievement
     };
 }
+
+// 全ての称号をunlocked情報付きで取得
+function getAllAchievements() {
+    const data = loadAchievements();
+    return Object.values(ACHIEVEMENTS).map(achievement => ({
+        ...achievement,
+        unlocked: data.unlocked.includes(achievement.id)
+    }));
+}

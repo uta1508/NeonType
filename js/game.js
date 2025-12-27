@@ -10,7 +10,7 @@ let correctKeystrokes = 0;
 let timerInterval = null;
 let countdownInterval = null;
 let startTime = 0;
-let highScore = { score: 0, kpm: 0 };
+let highScore = { score: 0, kps: 0 };
 let currentWord = null;
 let remainingKana = "";
 let typedRomajiLog = "";
@@ -18,6 +18,7 @@ let pendingNode = [];
 let wordDeck = [];
 let comboGauge = 0;
 let filteredWordCache = null;
+let isOnlineBattle = false; // オンライン対戦モードフラグ
 
 // 使用する単語リスト
 let activeWordList = (typeof rawWordList !== 'undefined') ? [...rawWordList] : [];
@@ -30,6 +31,18 @@ const MAX_RANKING_ENTRIES = 300;
 
 // DOM要素のキャッシュ
 const domCache = {};
+
+// タイマー管理の集約関数
+function cleanupTimers() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+}
 
 // 初期化
 async function initGame() {
@@ -84,21 +97,25 @@ function loadHighScore() {
             const parsed = JSON.parse(saved);
             // データの整合性チェック
             if (parsed && typeof parsed.score === 'number') {
+                // 旧形式（kpm）から新形式（kps）への変換
+                if (parsed.kpm !== undefined && parsed.kps === undefined) {
+                    parsed.kps = parsed.kpm;
+                    delete parsed.kpm;
+                }
                 highScore = parsed;
             }
         } catch(e) {
             console.error("Save data corrupted", e);
-            // 読み込み失敗時はリセットしない（既存のメモリ上の値を維持するか、安全のため初期値にするかは設計次第だが、ここではエラーログのみ）
         }
     }
     // 読み込み直後に表示を更新
     updateHighScoreDisplay();
 }
 
-function saveHighScore(newScore, newKpm) {
+function saveHighScore(newScore, newKps) {
     let updated = false;
-    // 練習モードのスコアは保存しない
-    if (currentSettings.mode === 'practice') return;
+    // 練習モードとオンライン対戦のスコアは保存しない
+    if (currentSettings.mode === 'practice' || isOnlineBattle) return;
 
     if (newScore > highScore.score) {
         highScore.score = newScore;
@@ -106,10 +123,10 @@ function saveHighScore(newScore, newKpm) {
         const el = document.getElementById('new-record-score');
         if (el) el.classList.remove('hidden');
     }
-    if (newKpm > highScore.kpm) {
-        highScore.kpm = newKpm;
+    if (newKps > highScore.kps) {
+        highScore.kps = newKps;
         updated = true;
-        const el = document.getElementById('new-record-kpm');
+        const el = document.getElementById('new-record-kps');
         if (el) el.classList.remove('hidden');
     }
 
@@ -121,17 +138,25 @@ function saveHighScore(newScore, newKpm) {
 
 function updateHighScoreDisplay() {
     const scoreEl = document.getElementById('best-score');
-    const kpmEl = document.getElementById('best-kpm');
+    const kpsEl = document.getElementById('best-kps');
+
+    // プロフィール統計からデータを取得
+    const stats = typeof getPlayerStats === 'function' ? getPlayerStats() : { bestScore: 0, bestKPS: 0 };
+
     // 要素が存在する場合のみ更新
-    if (scoreEl) scoreEl.textContent = highScore.score;
-    if (kpmEl) kpmEl.textContent = highScore.kpm;
+    if (scoreEl) scoreEl.textContent = stats.bestScore || highScore.score;
+    if (kpsEl) kpsEl.textContent = (stats.bestKPS || 0).toFixed(1);
 }
 
 // ゲーム開始準備（スタートボタン押下時）
 function prepareGame() {
-    // タイマー重複防止
-    if (timerInterval) clearInterval(timerInterval);
-    if (countdownInterval) clearInterval(countdownInterval);
+    // タイマー重複防止（集約関数を使用）
+    cleanupTimers();
+
+    // プロフィールボタンを非表示
+    if (typeof updateProfileButtonVisibility === 'function') {
+        updateProfileButtonVisibility();
+    }
 
     // サウンド初期化
     if (typeof soundManager !== 'undefined') {
@@ -203,34 +228,18 @@ function prepareGame() {
         }
     }
 
-    // 画面切り替え処理
-
-    // 1. セットアップ画面を閉じる（強制的に非表示にする）
-    // アニメーション完了を待たずに即座に閉じることで不具合を防ぐ
-    const setupScreen = document.getElementById('setup-screen');
-    if (setupScreen) {
-        setupScreen.classList.remove('modal-fade-in'); // アニメーションクラス削除
-        setupScreen.classList.add('hidden');
-        setupScreen.style.display = 'none';
-
-        // モーダルの中身のリセットも念のため
-        const modalContent = setupScreen.querySelector('.modal-content');
-        if(modalContent) modalContent.classList.remove('modal-content-out');
+    // 画面切り替え処理（統一管理関数を使用）
+    if (typeof hideAllScreens === 'function') {
+        hideAllScreens();
     }
 
-    // 2. スタート画面を閉じる
-    const startScreen = document.getElementById('start-screen');
-    if (startScreen) startScreen.classList.add('hidden');
-
-    // 3. リザルト画面を閉じる
-    const resultScreen = document.getElementById('result-screen');
-    if (resultScreen) resultScreen.classList.add('hidden');
-
-    // 4. ゲーム画面を表示
+    // ゲーム画面を表示
     const gameUI = document.getElementById('game-ui');
     if (gameUI) {
+        console.log('✅ [GAME] Displaying game UI for single player');
         gameUI.classList.remove('hidden');
         gameUI.classList.add('flex');
+        // インラインスタイルは使わない（CSSクラスで制御）
     }
 
     // 5. レディ画面（カウントダウン前）を表示
@@ -345,7 +354,13 @@ function startTimer() {
         return;
     }
 
-    const initialMaxTime = difficultyConfig[currentSettings.difficulty].time;
+    // オンライン対戦時はcurrentRoomのdurationを使用、それ以外はdifficultyConfigから取得
+    let initialMaxTime;
+    if (isOnlineBattle && onlineBattle.currentRoom) {
+        initialMaxTime = onlineBattle.currentRoom.duration;
+    } else {
+        initialMaxTime = difficultyConfig[currentSettings.difficulty].time;
+    }
 
     timerInterval = setInterval(() => {
         timeLeft--;
@@ -353,6 +368,7 @@ function startTimer() {
 
         let percentage = (timeLeft / initialMaxTime) * 100;
         if (percentage > 100) percentage = 100;
+        if (percentage < 0) percentage = 0;
 
         if (domCache.timeBar) {
             domCache.timeBar.style.width = percentage + '%';
@@ -377,7 +393,26 @@ function endGame(title = 'FINISH', canSubmit = true) {
 
     gameState = 'result';
 
+    // オンライン対戦中の場合、専用のリザルト画面を表示
+    if (isOnlineBattle && typeof endOnlineBattle === 'function' && onlineBattle.currentRoom) {
+        // endOnlineBattle で最終スコアを同期してからリザルト表示
+        endOnlineBattle().then(() => {
+            // スコア同期完了後に対戦相手のスコアを取得
+            const opponentScore = onlineBattle.opponentScore || 0;
+
+            // オンライン専用リザルト画面を表示
+            if (typeof showOnlineBattleResult === 'function') {
+                showOnlineBattleResult(score, opponentScore);
+            }
+        });
+
+        // オンライン対戦フラグをリセット
+        isOnlineBattle = false;
+        return; // 通常のリザルト処理はスキップ
+    }
+
     const durationSec = (Date.now() - startTime) / 1000;
+    const kps = durationSec > 0 ? (correctKeystrokes / durationSec) : 0;
     const kpm = durationSec > 0 ? Math.round((correctKeystrokes / durationSec) * 60) : 0;
     const accuracy = totalKeystrokes > 0
         ? Math.round((correctKeystrokes / totalKeystrokes) * 100)
@@ -386,13 +421,25 @@ function endGame(title = 'FINISH', canSubmit = true) {
     // 統計データ作成
     const gameStats = {
         score: score,
-        kps: durationSec > 0 ? (correctKeystrokes / durationSec) : 0,
+        kps: kps,
         misses: totalKeystrokes - correctKeystrokes,
         maxCombo: maxCombo,
         totalChars: totalWordsTyped
     };
 
-    saveHighScore(score, kpm);
+    // プレイヤー統計を更新(練習モード以外)
+    if (currentSettings.mode !== 'practice' && typeof updatePlayerStats === 'function') {
+        const playerGameData = {
+            score: score,
+            kps: gameStats.kps,
+            accuracy: accuracy,
+            totalKeys: correctKeystrokes,
+            playTime: Math.floor(durationSec)
+        };
+        updatePlayerStats(playerGameData);
+    }
+
+    saveHighScore(score, kps);
 
     // 称号チェック
     let newAchievements = [];
@@ -415,8 +462,8 @@ function endGame(title = 'FINISH', canSubmit = true) {
     const finalAccuracy = document.getElementById('final-accuracy');
     if (finalAccuracy) finalAccuracy.textContent = accuracy + '%';
 
-    const finalKpm = document.getElementById('final-kpm');
-    if (finalKpm) finalKpm.textContent = kpm;
+    const finalKps = document.getElementById('final-kps');
+    if (finalKps) finalKps.textContent = kps.toFixed(2);
 
     // 送信フォーム制御
     const rankingEntry = document.getElementById('ranking-entry');
@@ -434,12 +481,16 @@ function endGame(title = 'FINISH', canSubmit = true) {
     }
 
     const gameUI = document.getElementById('game-ui');
-    if (gameUI) gameUI.classList.add('hidden');
+    if (gameUI) {
+        gameUI.classList.add('hidden');
+        gameUI.style.display = 'none';
+    }
 
     const resultScreen = document.getElementById('result-screen');
     if (resultScreen) {
         resultScreen.classList.remove('hidden');
         resultScreen.classList.add('flex');
+        resultScreen.style.display = 'flex';
     }
 
     // 称号演出がある場合は開始
@@ -490,7 +541,7 @@ function updateComboGauge() {
 
 // 時間ボーナス表示
 function showTimeBonus(seconds) {
-    if (currentSettings.mode === 'practice') return;
+    if (currentSettings.mode === 'practice' || isOnlineBattle) return; // オンライン対戦時も無効
     const container = document.getElementById('bonus-container');
     if (!container) return;
 
@@ -504,39 +555,20 @@ function showTimeBonus(seconds) {
     setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 1000);
 }
 
-// タイトルへ戻る
-function showTitle() {
-    gameState = 'title';
-
-    // 確実にハイスコア表示を更新
-    loadHighScore();
-
-    const gameUI = document.getElementById('game-ui');
-    if (gameUI) gameUI.classList.add('hidden');
-
-    const resultScreen = document.getElementById('result-screen');
-    if (resultScreen) resultScreen.classList.add('hidden');
-
-    const setupScreen = document.getElementById('setup-screen');
-    if (setupScreen) setupScreen.classList.add('hidden');
-
-    const startScreen = document.getElementById('start-screen');
-    if (startScreen) startScreen.classList.remove('hidden');
-
-    // プロフィールボタンを再表示
-    const profileButton = document.getElementById('profile-button-top');
-    if (typeof hasPlayedBefore === 'function' && hasPlayedBefore() && profileButton) {
-        profileButton.classList.remove('hidden');
-    }
-}
+// タイトルへ戻る機能は ui.js の showTitle() 関数で実装されています
 
 // 入力ハンドラ
 function handleInput(e) {
     // Esc Key
     if (e.key === 'Escape') {
+        // オンライン対戦中はESCキー無効
+        if (isOnlineBattle && (gameState === 'playing' || gameState === 'countdown')) {
+            console.log('ESC disabled during online battle');
+            return;
+        }
+
         if (gameState === 'playing' || gameState === 'countdown') {
-            if (timerInterval) clearInterval(timerInterval);
-            if (countdownInterval) clearInterval(countdownInterval);
+            cleanupTimers(); // タイマーを集約関数でクリア
             prepareGame(); // Reset to ready screen
         } else if (gameState === 'ready') {
             showTitle(); // Back to title
@@ -562,4 +594,15 @@ function handleInput(e) {
     if (typeof processInput === 'function') {
         processInput(e);
     }
+}
+
+// オンライン対戦モードを設定
+function setOnlineBattleMode(enabled) {
+    isOnlineBattle = enabled;
+}
+
+// スコア表示更新（定期送信は別で行う）
+function updateScoreDisplay() {
+    if (domCache.scoreDisplay) domCache.scoreDisplay.textContent = score;
+    if (domCache.comboDisplay) domCache.comboDisplay.textContent = combo;
 }

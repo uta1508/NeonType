@@ -128,6 +128,13 @@ function initPendingNode() {
 function handleInput(e) {
     if (e.key === 'Escape') {
         allowExtraN = false;
+
+        // オンライン対戦中はESCキー無効
+        if (isOnlineBattle && (gameState === 'playing' || gameState === 'countdown')) {
+            console.log('ESC disabled during online battle');
+            return;
+        }
+
         if (gameState === 'playing' || gameState === 'countdown') {
             // タイマーのクリーンアップ
             if (timerInterval) {
@@ -199,6 +206,11 @@ function handleInput(e) {
             soundManager.playType();
 
             comboGauge++;
+
+        // オンライン対戦中の場合、スコアをブロードキャスト
+        if (typeof broadcastScoreUpdate === 'function') {
+            broadcastScoreUpdate();
+        }
             let reward = 0;
             if (comboGauge === COMBO_CHECKPOINTS[0]) reward = COMBO_REWARDS[0];
             else if (comboGauge === COMBO_CHECKPOINTS[1]) reward = COMBO_REWARDS[1];
@@ -210,7 +222,7 @@ function handleInput(e) {
                 comboGauge = 0;
             }
             if (reward > 0) {
-                if (currentSettings.mode !== 'practice') {
+                if (currentSettings.mode !== 'practice' && !isOnlineBattle) {
                     timeLeft += reward;
                     domCache.timeDisplay.textContent = timeLeft + 's';
                     showTimeBonus(reward);
@@ -288,7 +300,7 @@ function handleInput(e) {
             comboGauge = 0;
         }
         if (reward > 0) {
-            if (currentSettings.mode !== 'practice') {
+            if (currentSettings.mode !== 'practice' && !isOnlineBattle) {
                 timeLeft += reward;
                 domCache.timeDisplay.textContent = timeLeft + 's';
                 showTimeBonus(reward);
@@ -311,8 +323,8 @@ function handleInput(e) {
     } else {
         combo = 0;
         comboGauge = 0;
-        updateComboGauge();
         updateScoreDisplay();
+        updateComboGauge(); // ゲージ更新をスコア表示の後に
         soundManager.playMiss();
         const container = document.querySelector('.bg-slate-800\\/50');
         if (container) {
@@ -322,7 +334,24 @@ function handleInput(e) {
         }
         showFeedback(false);
         if (currentSettings.mode === 'sudden_death') {
-            setTimeout(() => endGame('GAME OVER'), 200);
+            // オンライン対戦中の場合、ミスを通知
+            if (isOnlineBattle && typeof onlineBattle !== 'undefined') {
+                console.log('💥 [MISS] I missed! Broadcasting to opponent');
+                onlineBattle.iMissed = true;
+                if (onlineBattle.broadcastSuddenDeathMiss) {
+                    // 先にブロードキャストしてから終了
+                    onlineBattle.broadcastSuddenDeathMiss().then(() => {
+                        setTimeout(() => endGame('GAME OVER'), 200);
+                    }).catch(err => {
+                        console.error('Failed to broadcast miss:', err);
+                        setTimeout(() => endGame('GAME OVER'), 200);
+                    });
+                } else {
+                    setTimeout(() => endGame('GAME OVER'), 200);
+                }
+            } else {
+                setTimeout(() => endGame('GAME OVER'), 200);
+            }
         }
     }
 }
@@ -331,9 +360,9 @@ function handleInput(e) {
 function updateWordDisplay() {
     const readingEl = domCache.wordReading;
     // ふりがな表示のロジック改善（長音記号を含む比較）
-    const shouldShowFurigana = globalSettings.furigana && 
+    const shouldShowFurigana = globalSettings.furigana &&
         currentWord.jp.replace(/ー/g, '') !== currentWord.kana.replace(/ー/g, '');
-    
+
     if (shouldShowFurigana) {
         readingEl.textContent = currentWord.kana;
         readingEl.classList.remove('opacity-0');
@@ -371,22 +400,26 @@ function updateWordDisplay() {
 
 // 最適な表示候補を選択
 function selectBestDisplayNode(nodes) {
-    return nodes.reduce((best, node) => {
-        const bestTyped = best.typedCount || 0;
-        const nodeTyped = node.typedCount || 0;
-        
-        if (nodeTyped > bestTyped) return node;
-        if (nodeTyped < bestTyped) return best;
-        if (!node.isSpecial && best.isSpecial) return node;
-        if (node.isSpecial && !best.isSpecial) return best;
-        if (node.patternIndex < best.patternIndex) return node;
-        if (node.patternIndex > best.patternIndex) return best;
-        if (node.originalLength < best.originalLength) return node;
-        if (node.originalLength > best.originalLength) return best;
-        if (node.rem.length < best.rem.length) return node;
-        
-        return best;
-    });
+    return [...nodes].sort((a, b) => {
+        // タイプ数が多い方を優先
+        if ((a.typedCount || 0) !== (b.typedCount || 0))
+            return (b.typedCount || 0) - (a.typedCount || 0);
+
+        // 特殊文字(x/l)でない方を優先
+        if (a.isSpecial !== b.isSpecial)
+            return a.isSpecial ? 1 : -1;
+
+        // パターンインデックスが小さい方を優先
+        if (a.patternIndex !== b.patternIndex)
+            return a.patternIndex - b.patternIndex;
+
+        // 元の長さが短い方を優先
+        if (a.originalLength !== b.originalLength)
+            return a.originalLength - b.originalLength;
+
+        // 残りが短い方を優先
+        return a.rem.length - b.rem.length;
+    })[0];
 }
 
 // 表示用ローマ字取得（優先ルートを固定表示）

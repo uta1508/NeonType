@@ -26,13 +26,36 @@ function loadGlobalSettings() {
             if (data.version === DATA_VERSION) {
                 globalSettings = { ...globalSettings, ...data.settings };
             } else {
-                console.log('Settings version mismatch, using defaults');
+                console.log(`Settings version mismatch (saved: ${data.version}, current: ${DATA_VERSION}), migrating...`);
+                // バージョンアップ時の移行処理
+                globalSettings = migrateSettings(data);
+                saveGlobalSettings(); // 移行後のデータを保存
             }
         } catch(e) {
             console.error("Settings data corrupted:", e);
+            // 破損している場合はデフォルトを使用
         }
     }
     soundManager.enabled = globalSettings.sound;
+}
+
+// 設定の移行処理
+function migrateSettings(oldData) {
+    const migrated = { ...globalSettings }; // デフォルトから開始
+    
+    // 旧バージョンの設定をマージ
+    if (oldData.settings) {
+        Object.keys(migrated).forEach(key => {
+            if (key in oldData.settings) {
+                migrated[key] = oldData.settings[key];
+            }
+        });
+    }
+    
+    // バージョン固有の移行処理をここに追加
+    // 例: if (oldData.version < 2) { ... }
+    
+    return migrated;
 }
 
 // 設定の保存
@@ -53,29 +76,38 @@ function resetData() {
         globalSettings = { furigana: true, uppercase: false, sound: true };
         updateHighScoreDisplay();
         updateSettingsUI();
-        alert("リセットしました。");
+        if (typeof showNotification === 'function') {
+            showNotification('リセットしました。', 'success');
+        }
     }
 }
 
 // 設定画面表示
 function showSettings() {
-    document.getElementById('start-screen').classList.add('hidden');
-
-    // プロフィールボタンを非表示
-    const profileButton = document.getElementById('profile-button-top');
-    if (profileButton) {
-        profileButton.classList.add('hidden');
+    // 統一関数で全画面を非表示
+    if (typeof hideAllScreens === 'function') {
+        hideAllScreens();
     }
 
+    // プロフィールボタンを非表示
+    if (typeof updateProfileButtonVisibility === 'function') {
+        updateProfileButtonVisibility();
+    }
+
+    // 設定画面を表示
     const settingsScreen = document.getElementById('settings-screen');
-    settingsScreen.classList.remove('hidden');
-    settingsScreen.classList.add('modal-fade-in');
-    settingsScreen.style.display = 'flex';
+    if (settingsScreen) {
+        settingsScreen.classList.remove('hidden');
+        settingsScreen.classList.add('modal-fade-in', 'flex');
+        // インラインスタイルは使わない
+    }
 }
 
 // 設定画面非表示
 function hideSettings() {
     const settingsScreen = document.getElementById('settings-screen');
+    if (!settingsScreen) return;
+    
     const modalContent = settingsScreen.querySelector('.modal-content');
 
     // フェードアウトアニメーションを追加
@@ -86,19 +118,27 @@ function hideSettings() {
     }
 
     // アニメーション終了後に非表示
+    const duration = typeof ANIMATION !== 'undefined' ? ANIMATION.DURATION : 250;
     setTimeout(() => {
-        settingsScreen.classList.add('hidden');
-        settingsScreen.classList.remove('modal-fade-out');
-        settingsScreen.style.display = 'none';
-        if (modalContent) {
-            modalContent.classList.remove('modal-content-out');
+        if (typeof hideScreen === 'function') {
+            hideScreen('settings-screen');
+        } else {
+            settingsScreen.classList.add('hidden');
+            settingsScreen.classList.remove('modal-fade-out', 'flex');
+            settingsScreen.removeAttribute('style');
+            if (modalContent) {
+                modalContent.classList.remove('modal-content-out');
+            }
         }
-        document.getElementById('start-screen').classList.remove('hidden');
+        
+        // スタート画面をリセットして表示
+        if (typeof resetStartScreenStyles === 'function') {
+            resetStartScreenStyles();
+        }
 
-        // プロフィールボタンを再表示
-        const profileButton = document.getElementById('profile-button-top');
-        if (hasPlayedBefore() && profileButton) {
-            profileButton.classList.remove('hidden');
+        // プロフィールボタンの表示制御
+        if (typeof updateProfileButtonVisibility === 'function') {
+            updateProfileButtonVisibility();
         }
     }, 250);
 }

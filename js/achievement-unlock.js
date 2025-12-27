@@ -231,7 +231,15 @@ document.addEventListener('click', (e) => {
 // キーボードイベントリスナー
 document.addEventListener('keydown', (e) => {
     if (achievementUnlockActive && gameState === 'result') {
-        if (e.key === ' ' || e.key === 'Enter') {
+        if (e.key === 'Escape') {
+            // ESCキーで全スキップ
+            e.preventDefault();
+            const overlay = document.getElementById('achievement-unlock-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+            finishAchievementUnlock();
+        } else if (e.key === ' ' || e.key === 'Enter') {
             e.preventDefault();
             const overlay = document.getElementById('achievement-unlock-overlay');
             if (overlay) {

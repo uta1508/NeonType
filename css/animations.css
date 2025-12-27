@@ -96,13 +96,13 @@
 @keyframes neon-glow {
     0%, 100% {
         box-shadow: 0 0 5px rgba(34, 211, 238, 0.3),
-                    0 0 10px rgba(34, 211, 238, 0.2),
-                    0 0 20px rgba(34, 211, 238, 0.1);
+        0 0 10px rgba(34, 211, 238, 0.2),
+        0 0 20px rgba(34, 211, 238, 0.1);
     }
     50% {
         box-shadow: 0 0 10px rgba(34, 211, 238, 0.5),
-                    0 0 20px rgba(34, 211, 238, 0.3),
-                    0 0 40px rgba(34, 211, 238, 0.2);
+        0 0 20px rgba(34, 211, 238, 0.3),
+        0 0 40px rgba(34, 211, 238, 0.2);
     }
 }
 
@@ -154,7 +154,7 @@
     }
     50% {
         box-shadow: 0 20px 80px rgba(34, 211, 238, 0.6),
-                    0 0 100px rgba(34, 211, 238, 0.4);
+        0 0 100px rgba(34, 211, 238, 0.4);
     }
 }
 
@@ -208,31 +208,31 @@
 
 .achievement-unlock-card.pop-in {
     animation: achievement-pop-in 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
-               card-pulse 2s ease-in-out infinite 0.8s;
+    card-pulse 2s ease-in-out infinite 0.8s;
 }
 
-.achievement-unlock-card.rarity-bronze { 
-    border-color: #cd7f32; 
+.achievement-unlock-card.rarity-bronze {
+    border-color: #cd7f32;
     box-shadow: 0 20px 60px rgba(205, 127, 50, 0.4);
 }
-.achievement-unlock-card.rarity-common { 
-    border-color: #10b981; 
+.achievement-unlock-card.rarity-common {
+    border-color: #10b981;
     box-shadow: 0 20px 60px rgba(16, 185, 129, 0.4);
 }
-.achievement-unlock-card.rarity-rare { 
-    border-color: #3b82f6; 
+.achievement-unlock-card.rarity-rare {
+    border-color: #3b82f6;
     box-shadow: 0 20px 60px rgba(59, 130, 246, 0.5);
 }
-.achievement-unlock-card.rarity-epic { 
-    border-color: #a855f7; 
+.achievement-unlock-card.rarity-epic {
+    border-color: #a855f7;
     box-shadow: 0 20px 60px rgba(168, 85, 247, 0.6);
 }
-.achievement-unlock-card.rarity-legendary { 
-    border-color: #f59e0b; 
+.achievement-unlock-card.rarity-legendary {
+    border-color: #f59e0b;
     box-shadow: 0 20px 60px rgba(245, 158, 11, 0.7);
 }
-.achievement-unlock-card.rarity-mythic { 
-    border-color: #ffffff; 
+.achievement-unlock-card.rarity-mythic {
+    border-color: #ffffff;
     box-shadow: 0 20px 80px rgba(255, 255, 255, 0.8);
 }
 
@@ -265,19 +265,19 @@
     color: #ffffff;
     margin-bottom: 10px;
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.5),
-                 0 0 40px rgba(34, 211, 238, 0.3);
+    0 0 40px rgba(34, 211, 238, 0.3);
     animation: text-glow 2s ease-in-out infinite;
 }
 
 @keyframes text-glow {
     0%, 100% {
         text-shadow: 0 0 20px rgba(255, 255, 255, 0.5),
-                     0 0 40px rgba(34, 211, 238, 0.3);
+        0 0 40px rgba(34, 211, 238, 0.3);
     }
     50% {
         text-shadow: 0 0 30px rgba(255, 255, 255, 0.8),
-                     0 0 60px rgba(34, 211, 238, 0.6),
-                     0 0 80px rgba(34, 211, 238, 0.4);
+        0 0 60px rgba(34, 211, 238, 0.6),
+        0 0 80px rgba(34, 211, 238, 0.4);
     }
 }
 
@@ -343,14 +343,14 @@
 }
 
 @keyframes mythic-pulse {
-    0%, 100% { 
-        opacity: 0.3; 
-        transform: scale(1); 
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
         filter: hue-rotate(0deg);
     }
-    50% { 
-        opacity: 0.8; 
-        transform: scale(1.2); 
+    50% {
+        opacity: 0.8;
+        transform: scale(1.2);
         filter: hue-rotate(360deg);
     }
 }
@@ -545,4 +545,175 @@
     95% { opacity: .95; }
     97% { opacity: .93; }
     to { opacity: 1; }
+}
+/* Emoji アニメーション（オンライン対戦用） */
+@keyframes emojiPop {
+    0% {
+        transform: translate(-50%, -50%) scale(0) rotate(-180deg);
+        opacity: 0;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.5) rotate(10deg);
+        opacity: 1;
+    }
+    70% {
+        transform: translate(-50%, -50%) scale(1.2) rotate(-5deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(0) rotate(0deg);
+        opacity: 0;
+    }
+}
+
+@keyframes emojiFloat {
+    0% {
+        transform: translate(-50%, -50%) translateY(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) translateY(-100px) scale(2);
+        opacity: 0;
+    }
+}
+
+.emoji-anim {
+    position: absolute;
+    pointer-events: none;
+    animation: emojiPop 2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* オンライン対戦リザルトアニメーション */
+@keyframes finishPop {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes scoreReveal {
+    0% {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes nextBtnAppear {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes winnerGlow {
+    0%, 100% {
+        text-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+    }
+    50% {
+        text-shadow: 0 0 30px currentColor, 0 0 60px currentColor, 0 0 80px currentColor;
+    }
+}
+
+.score-reveal {
+    animation: scoreReveal 0.6s ease-out forwards;
+}
+
+.next-btn-appear {
+    animation: nextBtnAppear 0.5s ease-out forwards;
+}
+
+.winner-text {
+    animation: winnerGlow 2s ease-in-out infinite;
+}
+
+/* 通知システムのアニメーション */
+@keyframes notification-slide-in {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes notification-slide-out {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+.notification {
+    transition: all 0.3s ease;
+}
+
+.notification-enter {
+    animation: notification-slide-in 0.3s ease-out forwards;
+}
+
+.notification-show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notification-exit {
+    animation: notification-slide-out 0.3s ease-in forwards;
+}
+
+/* オンライン対戦用カウントダウンアニメーション */
+@keyframes countdownPulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* フェードアウトアニメーション */
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+/* フェードインアニメーション */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }

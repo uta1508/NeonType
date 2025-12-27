@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Roboto:wght@400;700&family=Roboto+Mono:wght@400;500;600;700&display=swap');
 
 body {
     font-family: 'Noto Sans JP', sans-serif;
@@ -10,6 +10,8 @@ body {
 
 .mono {
     font-family: 'Roboto Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.05em;
 }
 
 /* 背景の装飾 */

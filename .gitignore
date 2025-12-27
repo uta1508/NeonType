@@ -5,3 +5,7 @@ node_modules/
 .DS_Store
 .vercel
 /admins/
+/camo/css/
+/camo/img/
+/camo/play/
+/camo/index.html
